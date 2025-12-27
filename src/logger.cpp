@@ -31,13 +31,13 @@ static void rotatelog(){
     }
 }
 
-void logreq(const std::string &clientadd,const std::string &serveradd,const std::string &requestline,const std::string &action){
+void logreq(const std::string &clientadd,const std::string &serveradd,const std::string &requestline,const std::string &action,int statuscode,size_t bytes_transferred){
     rotatelog();
     ofstream log(logfile,std::ios::app);
     if(!log.is_open()){
         return ;
     }
-    log<<currenttime()<<" | "<<clientadd<<" | "<<serveradd<<" | "<<requestline<<" | "<<action<<"\n";
+    log<<currenttime()<<" | "<<clientadd<<" | "<<serveradd<<" | "<<requestline<<" | "<<action<<" | "<<statuscode<<" | "<<bytes_transferred<<"\n";
 }
 
 
