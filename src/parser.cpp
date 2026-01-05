@@ -32,7 +32,7 @@ HttpRequest getdetails(const std::string &request){
     }
     else{
         temp.host=url;
-        temp.path='/';
+        temp.path="/";
     }
     }
     // headers
