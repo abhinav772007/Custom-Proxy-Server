@@ -8,6 +8,30 @@
 #include <windows.h>
 using namespace std;
 
+void tunnel(SOCKET a,SOCKET b){
+    char buffer[4096];
+    fd_set readfds;
+    while(true){
+       FD_ZERO(&readfds);
+       FD_SET(a,&readfds);
+       FD_SET(b,&readfds);
+       int maxfd=(a>b?a:b)+1;
+       int ready=select(maxfd,&readfds,nullptr,nullptr,nullptr);
+       if(ready<=0){
+        break;
+       }
+       if(FD_ISSET(a,&readfds)){
+        int n=recv(a,buffer,sizeof(buffer),0);
+        if(n<=0){break;}
+        send(b,buffer,n,0);
+       }
+       if(FD_ISSET(b,&readfds)){
+        int n=recv(b,buffer,sizeof(buffer),0);
+        if(n<=0){break;}
+        send(a,buffer,n,0);
+       }
+    }
+}
 SOCKET open_connection(const std::string &host, int port) {
     SOCKET server_socket = socket(AF_INET, SOCK_STREAM, 0);
     if (server_socket == INVALID_SOCKET) {
@@ -37,7 +61,7 @@ SOCKET open_connection(const std::string &host, int port) {
     return server_socket;
 }
 
-bool forward_request(int client_socket, const HttpRequest &request) {
+bool forward_request(SOCKET client_socket, const HttpRequest &request) {
 
     if (isblocked(request.host)) {
         const char *resp =
@@ -84,4 +108,25 @@ bool forward_request(int client_socket, const HttpRequest &request) {
 
     closesocket(server_socket);
     return true;
+}
+
+bool handle_connect(SOCKET client_socket,const HttpRequest &req){
+if(isblocked(req.host)){
+    const char *resp=
+         "HTTP/1.1 403 Forbidden\r\n"
+         "Content-Length: 0\r\n\r\n";
+    send(client_socket,resp,(int)strlen(resp),0);
+    return false;     
+     
+}
+
+SOCKET server_socket=open_connection(req.host,req.port);
+if(server_socket==INVALID_SOCKET)return false;
+const char *ok="HTTP/1.1 200 Connection Established\r\n\r\n";
+send(client_socket,ok,(int)strlen(ok),0);
+tunnel(client_socket,server_socket);
+closesocket(server_socket);
+return true;
+
+
 }

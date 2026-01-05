@@ -73,7 +73,9 @@ sockaddr_in addr{};
     status,
     0
 );
-
+if(request.method=="CONNECT"){
+    handle_connect(client_socket,request);
+}
         
         if(blocked){
             const char *resp =
