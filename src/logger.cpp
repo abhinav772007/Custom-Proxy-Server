@@ -11,6 +11,12 @@
 #endif
 using namespace std;
 #include<iostream>
+#include <unordered_map>
+#include<chrono>
+using namespace std::chrono;
+static size_t total_reqs=0;
+static unordered_map<string,size_t>count;
+static auto metrics_start=std::chrono::steady_clock::now();
 static string logfile="logs/proxy.log";
 static const size_t maxsize=4096;
 
@@ -58,4 +64,20 @@ void logreq(const std::string &clientadd,const std::string &serveradd,const std:
         return ;
     }
     log<<currenttime()<<" | "<<clientadd<<" | "<<serveradd<<" | "<<requestline<<" | "<<action<<" | "<<statuscode<<" | "<<bytes_transferred<<"\n";
+    total_reqs++;
+    count[serveradd]++;
+}
+void print_metrics(){
+    using namespace std::chrono;
+    auto now=steady_clock::now();
+    auto dur=duration_cast<seconds>(now-metrics_start).count();
+    if(dur==0)dur=1;
+    cout<<"\nProxy Metrics\n";
+    cout<<"Total requests: "<<total_reqs<<"\n";
+    cout<<"Requests per minute: "<<(total_reqs*60)/dur<<"\n";
+    cout<<"Top hosts:\n";
+    for(const auto &p : count){
+        cout<<" "<<p.first<<" : "<<p.second<<"\n";
+    }
+    cout<<"\n";
 }
