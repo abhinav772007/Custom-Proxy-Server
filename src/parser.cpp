@@ -2,7 +2,13 @@
 #include <sstream>
 #include<string>
 using namespace std;
-
+static bool starts_with_ci(const std::string &line,const std::string &key){
+if(line.size()<key.size())return false;
+for(size_t i=0;i<key.size();i++){
+    if(tolower(line[i])!=tolower(key[i]))return false;
+}
+return true;
+}
 HttpRequest getdetails(const std::string &request){
 
     HttpRequest temp;
@@ -19,10 +25,10 @@ HttpRequest getdetails(const std::string &request){
         std::istringstream lineStream(line);
         string url;
         lineStream>>temp.method>>url>>temp.version;
-        if(url.substr(0,7)=="http://"){
+        if(url.rfind("http://",0)==0){
         url=url.substr(7);
     }
-    else if(url.substr(0,8)=="https://"){
+    else if(url.rfind("https://",0)==0){
     url=url.substr(8);
     }
     size_t position=url.find('/');
@@ -41,14 +47,14 @@ HttpRequest getdetails(const std::string &request){
             line.pop_back();
         }
         if(line.empty()){break;}
-        if(line.substr(0,6)=="Host: "){
+        if(starts_with_ci(line,"Host: ")){
             if(temp.host.empty()){
                 temp.host=line.substr(6);
             }}
-            else if(line.substr(0,14)=="Content-Type: "){
+            else if(starts_with_ci(line,"Content-Type: ")){
                 temp.type=line.substr(14);
             }
-            else if(line.substr(0,16)=="Content-Length: "){
+            else if(starts_with_ci(line,"Content-Length: ")){
                 temp.length=stoi(line.substr(16));
             }
         
