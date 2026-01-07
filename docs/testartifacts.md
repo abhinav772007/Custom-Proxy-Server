@@ -83,7 +83,10 @@ Restart proxy server after editing.
 ```bash
 curl.exe -v -x http://localhost:8888 http://example.com
 ```
-
+Now lets test sub-domains 
+```bash
+curl.exe -v -x http://localhost:8888 http://sub.example.com
+```
 ### Expected Result
 
 ```
