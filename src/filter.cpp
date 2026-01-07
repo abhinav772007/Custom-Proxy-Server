@@ -24,5 +24,13 @@ void load_blocklist(const string &filename) {
 }
 
 bool isblocked(const string &host) {
-    return blocked.count(normalize(host));
+    string h=normalize(host);
+    for(const auto &b:blocked){
+        if(h==b)return true;
+        if(h.size()>b.size()&&h.compare(h.size()-b.size(),b.size(),b)==0 && h[h.size()-b.size()-1]=='.')//subdomain match 
+        {
+            return true;
+        }
+    }
+    return false;
 }
