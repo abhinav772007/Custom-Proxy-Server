@@ -9,7 +9,9 @@ using namespace std;
 
 static unordered_set<string> blocked;
 
-string normalize(string s) {
+static string normalize(string s){
+    while(!s.empty()&&isspace((unsigned char)s.front())){s.erase(s.begin());}
+    while(!s.empty()&&isspace((unsigned char)s.back())){s.pop_back();}
     transform(s.begin(), s.end(), s.begin(), ::tolower);
     return s;
 }
