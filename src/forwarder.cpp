@@ -8,7 +8,12 @@
 #include <windows.h>
 using namespace std;
 
-void tunnel(SOCKET a,SOCKET b){
+static void set_timeouts(SOCKET sock){
+    DWORD timeout=10000;
+        setsockopt(sock,SOL_SOCKET,SO_RCVTIMEO,(char*)&timeout,sizeof(timeout));
+        setsockopt(sock,SOL_SOCKET,SO_SNDTIMEO,(char*)&timeout,sizeof(timeout));
+}
+static void tunnel(SOCKET a,SOCKET b){
     char buffer[4096];
     fd_set readfds;
     while(true){
@@ -38,6 +43,7 @@ SOCKET open_connection(const std::string &host, int port) {
         std::cerr << "[-] Socket creation failed\n";
         return INVALID_SOCKET;
     }
+    set_timeouts(server_socket);
     struct addrinfo hints{}, *res = nullptr;
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
@@ -111,6 +117,7 @@ bool forward_request(SOCKET client_socket, const HttpRequest &request) {
 }
 
 bool handle_connect(SOCKET client_socket,const HttpRequest &req){
+    set_timeouts(client_socket);
 if(isblocked(req.host)){
     const char *resp=
          "HTTP/1.1 403 Forbidden\r\n"
@@ -126,6 +133,7 @@ const char *ok="HTTP/1.1 200 Connection Established\r\n\r\n";
 send(client_socket,ok,(int)strlen(ok),0);
 tunnel(client_socket,server_socket);
 closesocket(server_socket);
+closesocket(client_socket);
 return true;
 
 
